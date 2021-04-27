@@ -1,6 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
+from rest_framework import mixins
+from rest_framework import generics
+from rest_framework import status
+
+from django.http import Http404
 
 from .models import Dish
 from .serializers import *
@@ -44,3 +49,16 @@ class DishUpdateAPIView(APIView):
             data = serialized_object.data
             return Response(data=data)
         return Response(data=serializer.errors)
+class DishDeleteAPIView(APIView):
+
+    def delete(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        dish = Dish.objects.get(pk=pk)
+        dish.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+class DishDetailAPIView(APIView):
+    def get_object(self, pk, *args, **kwargs):
+        pk = kwargs['pk']
+        dish = Dish.objects.get(pk=pk)
+        serializer = DishSerializer(dish, many=True)
+        return Response({"dish": serializer.data})
