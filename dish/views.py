@@ -49,6 +49,8 @@ class DishUpdateAPIView(APIView):
             data = serialized_object.data
             return Response(data=data)
         return Response(data=serializer.errors)
+
+
 class DishDeleteAPIView(APIView):
 
     def delete(self, request, *args, **kwargs):
@@ -56,9 +58,11 @@ class DishDeleteAPIView(APIView):
         dish = Dish.objects.get(pk=pk)
         dish.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class DishDetailAPIView(APIView):
-    def get_object(self, pk, *args, **kwargs):
-        pk = kwargs['pk']
-        dish = Dish.objects.get(pk=pk)
-        serializer = DishSerializer(dish, many=True)
-        return Response({"dish": serializer.data})
+
+    def get(self, request, *args, **kwargs):
+        dish_object = Dish.objects.get(pk=kwargs.get('pk'))
+        serializer = DishSerializer(instance=dish_object)
+        return Response(data=serializer.data)
