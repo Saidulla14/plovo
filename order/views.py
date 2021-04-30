@@ -21,27 +21,20 @@ class OrderList(APIView):
 
 class OrderDetail(APIView):
     def get(self, request, *args, **kwargs):
-        order_object = Order.objects.get(pk=kwargs.get('pk'))
-        serializer = OrderSerializer(instance=order_object)
+        try:
+            order = Order.objects.get(pk=kwargs.get('pk'))
+        except Order.DoesNotExist as e:
+            return Response(data={"message": f'Order was not found: {e}'}, status=404)
+
+        serializer = OrderSerializer(instance=order)
         return Response(data=serializer.data)
 
     def put(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        order = Order.objects.get(pk=pk)
-
-        data = request.POST
-        serializer = OrderSerializer(data=data)
-
+        order = Order.objects.get(pk=kwargs.get('pk'))
+        serializer = OrderSerializer(instance=order, data=request.data)
         if serializer.is_valid():
-            order.user = serializer.validated_data.get('user')
-            order.dish = serializer.validated_data.get('dish')
-            order.address = serializer.validated_data.get('address')
-            order.phone = serializer.validated_data.get('phone')
-            order.save()
-            serialized_object = OrderSerializer(order)
-            json_data = serialized_object.data
-            return Response(data=json_data)
-        return Response(data=serializer.errors)
+            serializer.save()
+            return Response(serializer.data)
 
 
 
